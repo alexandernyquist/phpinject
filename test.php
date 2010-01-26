@@ -8,54 +8,24 @@ interface IMessagePrinter
 
 class HtmlMessagePrinter implements IMessagePrinter
 {
-	public function __construct(IDatabaseProvider $db)
+	private $created;
+	
+	public function __construct()
 	{
-		$db->connect();
+		$this->created = date('Y-m-d H:i:s');
 	}
 	
 	public function write($string)
 	{
-		print '<em>"' . $string . '" was printed using HTML.</em>';
-	}
-}
-
-class PlainTextPrinter implements IMessagePrinter
-{
-	public function write($string)
-	{
-		print '"' . $string . '" was printed using plain text.';
-	}
-}
-
-interface IDatabaseProvider
-{
-	function connect();
-}
-
-class MysqlProvider implements IDatabaseProvider
-{
-	public function connect()
-	{
-		echo 'connecting to mysql';
-	}
-}
-
-class SqlLiteProvider implements IDatabaseProvider
-{
-	public function connect()
-	{
-		echo 'connecting to sqllite';
+		print 'I was created ' . $this->created . '. This message was printed using Html.<br />';
 	}
 }
 
 class hello_world
 {
-	public function __construct(IMessagePrinter $printer, IDatabaseProvider $db)
+	public function __construct(IMessagePrinter $printer)
 	{
 		$this->printer = $printer;
-		$this->db = $db;
-		
-		$this->db->connect();
 	}
 	
 	public function say($message)
@@ -68,9 +38,15 @@ class hello_world
 
 
 $ioc = new phpinject;
-$ioc->bind('IDatabaseProvider')->to('MysqlProvider')
-	->bind('IMessagePrinter')->to('HtmlMessagePrinter');
+$ioc->bind('IMessagePrinter')
+	->to('HtmlMessagePrinter')
+	->using(new BindingType_Normal);
 
 
-$helloWorldPrinter = $ioc->instantiate('hello_world');
-$helloWorldPrinter->say('Hej!');
+$p1 = $ioc->instantiate('hello_world');
+$p1->say('Hej!');
+
+sleep(2);
+
+$p2 = $ioc->instantiate('hello_world');
+$p2->say('Hejsan!');
